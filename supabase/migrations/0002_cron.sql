@@ -19,5 +19,5 @@ language sql security definer set search_path = public as $$
 $$;
 revoke execute on function panggil_cron(text) from public, anon, authenticated;
 
-select cron.schedule('jarkoman-sync', '0 * * * *', $$ select panggil_cron('/api/cron/sync') $$);
+select cron.schedule('jarkoman-sync', '30 * * * *', $$ select panggil_cron('/api/cron/sync') $$);
 select cron.schedule('jarkoman-dispatch', '* * * * *', $$ select panggil_cron('/api/cron/dispatch') $$);

@@ -1,5 +1,5 @@
 import { cronSah } from "@/lib/cron";
-import { muatSemua } from "@/lib/db";
+import { muatUntukDispatch } from "@/lib/db";
 import { MAKS_PERCOBAAN, pilihAksi, type BarisDispatch } from "@/lib/jarkoman/dispatch";
 import { LABEL_JENIS, susunJarkoman } from "@/lib/jarkoman/susun";
 import { tanggalPendek } from "@/lib/jarkoman/waktu";
@@ -10,23 +10,32 @@ export async function POST(req: Request) {
   if (!cronSah(req)) return Response.json({ error: "unauthorized" }, { status: 401 });
   const db = supabaseAdmin();
   const now = new Date();
-  const data = await muatSemua(db);
-  const admin = data.pengaturan.admin_wa;
-  if (!admin) return Response.json({ skip: "nomor admin belum diisi" });
 
-  const tersusun = new Map(data.jarkoman.map((j) => [j.id, { j, s: susunJarkoman(data, j) }]));
+  // Klaim yang macet karena proses sebelumnya mati: buka lagi supaya dicoba ulang.
+  const sapu = await db.rpc("sapu_klaim_macet");
+  if (sapu.error) return Response.json({ error: sapu.error.message }, { status: 500 });
+
+  const data = await muatUntukDispatch(db, now);
+  const admin = data.adminWa;
+  if (!admin) return Response.json({ skip: "nomor admin belum diisi atau tidak ada jarkoman jatuh tempo" });
+
+  const tersusun = new Map(data.jarkoman.map((j) => [j.id, { j, s: susunJarkoman(data, j, now) }]));
   const baris: BarisDispatch[] = [];
   for (const { j, s } of tersusun.values()) {
     if (!s) continue;
     baris.push({
-      id: j.id, status: j.status, kirimAt: s.kirimAt, otomasiAktif: s.kelas.otomasiAktif,
+      id: j.id, jenis: j.jenis, status: j.status, kirimAt: s.kirimAt, mulai: s.mulai, otomasiAktif: s.kelas.otomasiAktif,
       lengkap: s.hasil.kosong.length === 0, remindedAt: j.remindedAt, percobaan: j.percobaan,
     });
   }
   const aksi = pilihAksi(now, baris);
   const appUrl = process.env.APP_URL ?? "";
-  const hasil = { notif: 0, ingat: 0, gagal: 0 };
+  const hasil = { notif: 0, ingat: 0, gagal: 0, dilewati: aksi.lewati.length };
   const labelSesi = (n: number | undefined) => (n ? `Sesi ${n}` : "Sesi perdana");
+
+  if (aksi.lewati.length) {
+    await db.from("jarkoman").update({ status: "dilewati" }).in("id", aksi.lewati).in("status", ["terjadwal", "perlu_dilengkapi"]);
+  }
 
   if (aksi.notif.length) {
     // Klaim atomik: kalau cron jalan dobel, hanya satu pemanggilan yang mendapat barisnya.

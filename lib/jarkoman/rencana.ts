@@ -20,13 +20,39 @@ const JAM = 60 * 60 * 1000;
 export const kirimEfektif = (r: Pick<JarkomanRow, "kirimAt" | "kirimAtManual">) => r.kirimAtManual ?? r.kirimAt;
 
 // Sync terlambat: masih layak dikirim selama sesi belum mulai (presensi: sampai 12 jam setelah mulai).
-function masihRelevan(jenis: Jenis, mulai: Date, kirim: Date, now: Date): boolean {
+export function masihRelevan(jenis: Jenis, mulai: Date, kirim: Date, now: Date): boolean {
   if (kirim >= now) return true;
   const batas = jenis === "presensi" ? mulai.getTime() + 12 * JAM : mulai.getTime();
   return batas > now.getTime();
 }
 
 const kunci = (jenis: Jenis, sesiId: string | null) => `${jenis}:${sesiId ?? "-"}`;
+export const terbuka = (s: Status) => s === "terjadwal" || s === "perlu_dilengkapi";
+
+type Kolom = "kirimAt" | "kirimAtManual" | "status" | "notifiedAt" | "remindedAt" | "percobaan" | "error";
+const KOLOM: Kolom[] = ["kirimAt", "kirimAtManual", "status", "notifiedAt", "remindedAt", "percobaan", "error"];
+const sama = (a: unknown, b: unknown) => (a instanceof Date && b instanceof Date ? a.getTime() === b.getTime() : a === b);
+
+export interface UbahSync {
+  id: string;
+  patch: Partial<Pick<JarkomanRow, Kolom>>;
+  // Tulis hanya kalau baris masih seperti saat dibaca, supaya klaim dispatch/aksi admin tidak tertimpa.
+  syarat: { status: Status; remindedAt: Date | null };
+}
+
+export function perubahanSync(ada: JarkomanRow[], rencana: JarkomanRow[]): { baru: JarkomanRow[]; ubah: UbahSync[] } {
+  const lama = new Map(ada.filter((r) => r.id).map((r) => [r.id!, r]));
+  const baru = rencana.filter((r) => !r.id);
+  const ubah: UbahSync[] = [];
+  for (const r of rencana) {
+    const e = r.id ? lama.get(r.id) : undefined;
+    if (!e) continue;
+    const patch: Partial<Pick<JarkomanRow, Kolom>> = {};
+    for (const k of KOLOM) if (!sama(e[k], r[k])) (patch as Record<string, unknown>)[k] = r[k];
+    if (Object.keys(patch).length) ubah.push({ id: r.id!, patch, syarat: { status: e.status, remindedAt: e.remindedAt } });
+  }
+  return { baru, ubah };
+}
 
 export function rencanakanJarkoman(kelas: Kelas, sesi: Sesi[], ada: JarkomanRow[], now: Date): JarkomanRow[] {
   const lama = new Map(ada.map((r) => [kunci(r.jenis, r.sesiId), r]));
@@ -56,14 +82,13 @@ export function rencanakanJarkoman(kelas: Kelas, sesi: Sesi[], ada: JarkomanRow[
       });
       continue;
     }
-    if (e.kirimAt.getTime() === def.getTime()) {
-      hasil.push(e);
-      continue;
-    }
     const baru: JarkomanRow = { ...e, kirimAt: def };
+    const relevan = masihRelevan(t.jenis, t.mulai, kirimEfektif(baru), now);
     const efektifBerubah = kirimEfektif(e).getTime() !== kirimEfektif(baru).getTime();
-    const sudahJalan = e.status !== "terjadwal" && e.status !== "perlu_dilengkapi";
-    if (efektifBerubah && sudahJalan && kirimEfektif(baru) > now) {
+    if (terbuka(e.status)) {
+      // Baris yang belum dikirim tapi sesinya sudah lewat tidak boleh terkirim saat otomasi baru dinyalakan.
+      if (!relevan) baru.status = "dilewati";
+    } else if (efektifBerubah && relevan) {
       Object.assign(baru, { status: "terjadwal", notifiedAt: null, remindedAt: null, percobaan: 0, error: null });
     }
     hasil.push(baru);

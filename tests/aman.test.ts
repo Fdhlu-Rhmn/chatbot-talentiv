@@ -8,3 +8,8 @@ test("amanNext menolak redirect ke luar", () => {
   expect(amanNext("https://evil.com")).toBe("/");
   expect(amanNext(null)).toBe("/");
 });
+
+test("M1: karakter kontrol ditolak", () => {
+  expect(amanNext("/\t/evil.com")).toBe("/");
+  expect(amanNext("/\n/evil.com")).toBe("/");
+});

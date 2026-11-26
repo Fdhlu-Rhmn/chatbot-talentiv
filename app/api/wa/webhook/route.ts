@@ -32,7 +32,8 @@ export async function POST(req: Request) {
     const db = supabaseAdmin();
     for (const s of gagal) {
       const pesan = s.errors?.[0]?.message ?? s.errors?.[0]?.title ?? "Gagal terkirim";
-      await db.from("jarkoman").update({ error: `WhatsApp: ${pesan}` }).eq("wa_message_id", s.id);
+      // Jadwalkan ulang (maks 3 percobaan). ponytail: id pesan pengingat tidak disimpan, jadi gagalnya tidak terlacak.
+      await db.rpc("gagal_dari_meta", { msg_id: s.id, pesan: `WhatsApp: ${pesan}` });
     }
   }
   return new Response("ok");

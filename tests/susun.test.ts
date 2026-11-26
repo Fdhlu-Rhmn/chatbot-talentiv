@@ -31,3 +31,14 @@ test("tanpa override: field kosong terdeteksi", () => {
   const data = { kelas: [kelas], sesi: [sesi("s1", 1, "x"), sesi("s2", 2, null)], override: [], jarkoman: [] };
   expect(susunJarkoman(data, row({}))!.hasil.kosong).toEqual(["Link presensi"]);
 });
+
+test("I1: kirim terlambat dirender dengan jam sekarang, setelah terkirim dengan notifiedAt", () => {
+  const data = { kelas: [kelas], sesi: [sesi("s1", 1, "x"), { ...sesi("s2", 2, "y"), mulai: wib(2026, 12, 3, 8, 0) }], override: [], jarkoman: [] };
+  const telat = row({ jenis: "pengingat", kirimAt: wib(2026, 12, 2, 19, 0) });
+  const now = wib(2026, 12, 3, 6, 0);
+  const r = susunJarkoman(data, telat, now)!;
+  expect(r.kirimAt).toEqual(now);
+  expect(r.hasil.teks).toContain("pagi ini");
+  const terkirim = susunJarkoman(data, row({ jenis: "pengingat", kirimAt: wib(2026, 12, 2, 19, 0), status: "notif_terkirim", notifiedAt: now }), wib(2026, 12, 3, 7, 0))!;
+  expect(terkirim.kirimAt).toEqual(now);
+});

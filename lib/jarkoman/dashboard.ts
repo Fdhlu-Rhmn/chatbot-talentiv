@@ -43,7 +43,7 @@ export function siapkanDashboard(d: DataJarkoman & { jarkoman: (JarkomanRow & { 
   const ids = new Set(kelasTerpilih.map((k) => k.id));
   const baris: BarisJadwal[] = d.jarkoman
     .filter((j) => ids.has(j.kelasId) && (!jenisAktif || j.jenis === jenisAktif))
-    .map((j) => ({ j, t: susunJarkoman(d, j) }))
+    .map((j) => ({ j, t: susunJarkoman(d, j, now) }))
     .filter((x): x is { j: JarkomanRow & { id: string }; t: JarkomanTersusun } => x.t !== null)
     .map(({ j, t }) => ({ j, t, status: statusTampil(j.status, t.hasil.kosong.length === 0, t.kelas.otomasiAktif) }))
     .sort((a, b) => kirimEfektif(a.j).getTime() - kirimEfektif(b.j).getTime());

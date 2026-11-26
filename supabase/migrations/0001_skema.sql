@@ -98,3 +98,25 @@ language sql as $$
   returning *;
 $$;
 revoke execute on function klaim_notif(uuid[]) from public, anon, authenticated;
+
+-- Klaim yang macet (proses mati antara klaim dan kirim): buka lagi setelah 5 menit, hitung sebagai satu percobaan.
+create function sapu_klaim_macet() returns setof jarkoman
+language sql as $$
+  update jarkoman
+  set status = case when percobaan + 1 >= 3 then 'gagal'::status_jarkoman else 'terjadwal'::status_jarkoman end,
+      percobaan = percobaan + 1, notified_at = null, error = 'Pengiriman terputus sebelum selesai'
+  where status = 'notif_terkirim' and wa_message_id is null and notified_at < now() - interval '5 minutes'
+  returning *;
+$$;
+revoke execute on function sapu_klaim_macet() from public, anon, authenticated;
+
+-- Meta melaporkan pesan gagal (webhook): jadwalkan ulang, atau gagal setelah 3 percobaan.
+create function gagal_dari_meta(msg_id text, pesan text) returns setof jarkoman
+language sql as $$
+  update jarkoman
+  set status = case when percobaan + 1 >= 3 then 'gagal'::status_jarkoman else 'terjadwal'::status_jarkoman end,
+      percobaan = percobaan + 1, notified_at = null, wa_message_id = null, error = pesan
+  where wa_message_id = msg_id and status = 'notif_terkirim'
+  returning *;
+$$;
+revoke execute on function gagal_dari_meta(text, text) from public, anon, authenticated;
