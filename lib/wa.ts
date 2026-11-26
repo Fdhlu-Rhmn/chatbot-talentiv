@@ -35,6 +35,11 @@ export async function kirimTemplate(
   }
 }
 
+export function normalisasiNomor(s: string): string | null {
+  const n = s.replace(/[\s-]/g, "").replace(/^\+/, "").replace(/^0/, "62");
+  return /^62\d{8,13}$/.test(n) ? n : null;
+}
+
 export function tandaTanganSah(body: string, header: string | null): boolean {
   const secret = process.env.WA_APP_SECRET;
   if (!secret || !header) return false;

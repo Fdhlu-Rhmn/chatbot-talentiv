@@ -85,6 +85,17 @@ export function tanggalPanjang(t: Date): string {
   return `${NAMA_HARI[bagianWib(t).hari]}, ${tanggalPendek(t)}`;
 }
 
+// Nilai <input type="datetime-local"> selalu dibaca sebagai WIB, apa pun zona waktu browser/server.
+export function keInputWib(t: Date): string {
+  const { y, m, d, h, min } = bagianWib(t);
+  return `${y}-${dua(m)}-${dua(d)}T${dua(h)}:${dua(min)}`;
+}
+
+export function dariInputWib(s: string): Date | null {
+  const c = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(s);
+  return c ? wib(+c[1], +c[2], +c[3], +c[4], +c[5]) : null;
+}
+
 export function jamWib(t: Date): string {
   const { h, min } = bagianWib(t);
   return `${dua(h)}.${dua(min)}`;

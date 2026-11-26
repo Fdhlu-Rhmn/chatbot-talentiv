@@ -36,3 +36,13 @@ test("tandaTanganSah memverifikasi X-Hub-Signature-256", () => {
   expect(tandaTanganSah(body, "sha256=00")).toBe(false);
   expect(tandaTanganSah(body, null)).toBe(false);
 });
+
+import { normalisasiNomor } from "@/lib/wa";
+
+test("normalisasiNomor ke format 62", () => {
+  expect(normalisasiNomor("0812-3456-7890")).toBe("6281234567890");
+  expect(normalisasiNomor("+62 812 3456 7890")).toBe("6281234567890");
+  expect(normalisasiNomor("6281234567890")).toBe("6281234567890");
+  expect(normalisasiNomor("12345")).toBeNull();
+  expect(normalisasiNomor("62abc")).toBeNull();
+});

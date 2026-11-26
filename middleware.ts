@@ -1,8 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
+﻿import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });
+  // Mode demo (Supabase belum diatur): tanpa login, data contoh read-only.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return res;
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       getAll: () => req.cookies.getAll(),
@@ -24,5 +26,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/|_next/|favicon.ico|h7.png).*)"],
+  matcher: ["/((?!api/|_next/|favicon.ico|h7.svg|h7.png).*)"],
 };
