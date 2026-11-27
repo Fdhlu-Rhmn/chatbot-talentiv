@@ -20,7 +20,7 @@ export default async function SiapKirim({ params }: { params: Promise<{ id: stri
     <main className="mx-auto max-w-lg space-y-4 p-4 pb-10">
       <header>
         <p className="text-sm text-ink-muted">{LABEL_JENIS[j.jenis]} · {t.sesi ? `Sesi ${t.sesi.nomor}` : "Sesi perdana"}</p>
-        <h1 className="text-2xl">{t.kelas.nama}</h1>
+        <h1 className="mt-1 text-xl leading-snug">{t.kelas.nama}</h1>
         <p className="text-sm text-ink-muted">Jadwal kirim {tanggalPendek(t.kirimAt)}</p>
       </header>
 

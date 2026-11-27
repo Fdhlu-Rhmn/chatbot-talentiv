@@ -35,7 +35,7 @@ export function Filter({ filter }: { filter: OpsiFilter[] }) {
         <label key={f.nama} className="text-xs font-semibold text-ink-muted">
           {f.label}
           <select value={f.nilai} onChange={(e) => ubah(f.nama, e.target.value)}
-            className="mt-1 w-full rounded-xl border border-garis bg-kartu px-3 py-2.5 text-sm font-normal text-ink focus-visible:outline-2 focus-visible:outline-cta">
+            className="mt-1 w-full rounded-xl border border-garis bg-kartu px-3 py-2 text-sm font-normal text-ink focus-visible:outline-2 focus-visible:outline-cta">
             {f.opsi.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}

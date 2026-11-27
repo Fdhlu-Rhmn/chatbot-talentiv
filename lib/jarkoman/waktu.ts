@@ -100,3 +100,9 @@ export function jamWib(t: Date): string {
   const { h, min } = bagianWib(t);
   return `${dua(h)}.${dua(min)}`;
 }
+
+// Untuk tabel: "Sab, 14 Nov 2026 · 09.00".
+export function tanggalRingkas(t: Date): string {
+  const { y, m, d, hari } = bagianWib(t);
+  return `${NAMA_HARI[hari].slice(0, 3)}, ${d} ${NAMA_BULAN[m - 1].slice(0, 3)} ${y} · ${jamWib(t)}`;
+}

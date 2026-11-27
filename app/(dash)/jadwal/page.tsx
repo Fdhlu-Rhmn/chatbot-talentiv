@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { KalenderMinggu } from "@/components/KalenderMinggu";
-import { BadgeStatus, Kartu } from "@/components/ui";
+import { BadgeStatus, JudulHalaman, Kartu, tanpaSeason } from "@/components/ui";
 import { muatDashboard } from "@/lib/data";
 import { cariBentrok } from "@/lib/jarkoman/bentrok";
 import { siapkanDashboard } from "@/lib/jarkoman/dashboard";
-import { bagianWib, tanggalPanjang, wib } from "@/lib/jarkoman/waktu";
+import { bagianWib, tanggalRingkas, wib } from "@/lib/jarkoman/waktu";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +32,8 @@ export default async function Jadwal({ searchParams }: { searchParams: Promise<{
   };
 
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="text-sm text-ink-muted">Season {d.seasonAktif}</p>
-        <h1 className="text-3xl md:text-4xl">Jadwal kelas</h1>
-      </header>
+    <div className="mx-auto max-w-[1400px] space-y-5">
+      <JudulHalaman atas={`Season ${d.seasonAktif}`} judul="Jadwal kelas" />
 
       <Kartu>
         <h2 className="mb-3 text-lg">Kalender mingguan · semua kelas</h2>
@@ -45,51 +42,74 @@ export default async function Jadwal({ searchParams }: { searchParams: Promise<{
           hrefMinggu={(iso) => `/jadwal?${new URLSearchParams({ ...(p.season ? { season: p.season } : {}), minggu: iso })}`}
           item={sesiSeason.map((s) => {
             const k = d.kelasTerpilih.find((x) => x.id === s.kelasId)!;
-            return { id: s.id, mulai: s.mulai, judul: k.nama, sub: `Sesi ${s.nomor}${s.topik ? ` · ${s.topik}` : ""}`, warna: warna.get(k.id)!, bentrok: bentrok.has(s.id) };
+            return { id: s.id, mulai: s.mulai, judul: tanpaSeason(k.nama, d.seasonAktif), sub: `Sesi ${s.nomor}${s.topik ? ` · ${s.topik}` : ""}`, warna: warna.get(k.id)!, bentrok: bentrok.has(s.id) };
           })}
         />
       </Kartu>
 
-      {d.kelasTerpilih.map((k) => (
+      {d.kelasTerpilih.map((k) => {
+        const sesiKelas = data.sesi.filter((s) => s.kelasId === k.id).sort((a, b) => a.nomor - b.nomor);
+        return (
         <Kartu key={k.id}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg">{k.nama}</h2>
-            <div className="flex items-center gap-3 text-xs">
+            <h2 className="text-lg" title={k.nama}>{tanpaSeason(k.nama, d.seasonAktif)}</h2>
+            <div className="flex items-center gap-3 text-xs text-ink-muted">
               <span>H-7 {sel("h7", k.id)}</span>
               <span>H-1 {sel("h1", k.id)}</span>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+          {/* HP: satu kartu per sesi, tanpa geser ke samping. */}
+          <ul className="grid gap-2 sm:grid-cols-2 lg:hidden">
+            {sesiKelas.map((s) => (
+              <li key={s.id} className="rounded-xl border border-garis p-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-semibold">Sesi {s.nomor}{s.topik && <span className="font-normal"> · {s.topik}</span>}</p>
+                  {bentrok.has(s.id) && <Bentrok />}
+                </div>
+                <p className="mt-0.5 text-ink-muted">{tanggalRingkas(s.mulai)} · {s.mentorNama ?? "Pembicara belum diisi"}</p>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-xs">
+                  <dt className="text-ink-muted">Pengingat</dt><dd>{sel("pengingat", s.id)}</dd>
+                  <dt className="text-ink-muted">Presensi</dt><dd>{sel("presensi", s.id)}</dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden lg:block">
+            <table className="w-full text-left text-sm">
               <thead className="text-xs text-ink-muted">
                 <tr className="border-b border-garis">
-                  <th className="py-2 pr-3 font-semibold">Sesi</th>
-                  <th className="py-2 pr-3 font-semibold">Topik</th>
-                  <th className="py-2 pr-3 font-semibold">Tanggal & jam</th>
-                  <th className="py-2 pr-3 font-semibold">Pembicara</th>
-                  <th className="py-2 pr-3 font-semibold">Pengingat</th>
-                  <th className="py-2 font-semibold">Presensi</th>
+                  <th className="w-12 py-2.5 pr-4 font-semibold">Sesi</th>
+                  <th className="py-2.5 pr-4 font-semibold">Topik</th>
+                  <th className="py-2.5 pr-4 font-semibold">Tanggal & jam</th>
+                  <th className="py-2.5 pr-4 font-semibold">Pembicara</th>
+                  <th className="py-2.5 pr-4 font-semibold">Pengingat</th>
+                  <th className="py-2.5 font-semibold">Presensi</th>
                 </tr>
               </thead>
               <tbody>
-                {data.sesi.filter((s) => s.kelasId === k.id).sort((a, b) => a.nomor - b.nomor).map((s) => (
-                  <tr key={s.id} className="border-b border-garis/70">
-                    <td className="py-2 pr-3">{s.nomor}</td>
-                    <td className="py-2 pr-3">{s.topik ?? "–"}</td>
-                    <td className="py-2 pr-3">
-                      {tanggalPanjang(s.mulai)}
-                      {bentrok.has(s.id) && <span className="ml-1 font-semibold text-[#8F1D1D]">Bentrok</span>}
+                {sesiKelas.map((s) => (
+                  <tr key={s.id} className="border-b border-garis/70 last:border-0 hover:bg-latar/60">
+                    <td className="py-3 pr-4 text-ink-muted">{s.nomor}</td>
+                    <td className="py-3 pr-4">{s.topik ?? "–"}</td>
+                    <td className="whitespace-nowrap py-3 pr-4">
+                      {tanggalRingkas(s.mulai)}
+                      {bentrok.has(s.id) && <span className="ml-2"><Bentrok /></span>}
                     </td>
-                    <td className="py-2 pr-3">{s.mentorNama ?? "–"}</td>
-                    <td className="py-2 pr-3">{sel("pengingat", s.id)}</td>
-                    <td className="py-2">{sel("presensi", s.id)}</td>
+                    <td className="py-3 pr-4">{s.mentorNama ?? "–"}</td>
+                    <td className="py-3 pr-4">{sel("pengingat", s.id)}</td>
+                    <td className="py-3">{sel("presensi", s.id)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </Kartu>
-      ))}
+        );
+      })}
     </div>
   );
 }
+
+const Bentrok = () => (
+  <span className="shrink-0 rounded-full bg-[#FBDADA] px-2 py-0.5 text-xs font-medium text-[#8F1D1D]">Bentrok</span>
+);

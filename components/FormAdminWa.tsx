@@ -7,7 +7,7 @@ export function FormAdminWa({ awal }: { awal: string }) {
   const [pesan, setPesan] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
-    <form className="space-y-2" onSubmit={(e) => {
+    <form className="space-y-3" onSubmit={(e) => {
       e.preventDefault();
       start(async () => {
         const r = await simpanAdminWa(nilai);
@@ -17,7 +17,7 @@ export function FormAdminWa({ awal }: { awal: string }) {
       <label className="block text-sm font-medium">
         Nomor WhatsApp admin penerima notifikasi
         <input value={nilai} onChange={(e) => setNilai(e.target.value)} inputMode="tel" placeholder="6281234567890"
-          className="mt-1 w-full max-w-xs rounded-xl border border-garis px-3 py-2.5 font-normal" />
+          className="mt-1.5 block w-full max-w-xs rounded-xl border border-garis px-3 py-2.5 font-normal focus-visible:outline-2 focus-visible:outline-cta" />
       </label>
       <button disabled={pending} className="rounded-[16px] bg-cta px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
         {pending ? "Menyimpan…" : "Simpan nomor"}

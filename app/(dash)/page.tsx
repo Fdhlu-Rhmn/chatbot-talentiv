@@ -4,7 +4,7 @@ import { Filter } from "@/components/Filter";
 import { JamKirim } from "@/components/JamKirim";
 import { KolomVariabel } from "@/components/KolomVariabel";
 import { PratinjauWA } from "@/components/PratinjauWA";
-import { BadgeStatus, Kartu } from "@/components/ui";
+import { BadgeStatus, JudulHalaman, Kartu, tanpaSeason } from "@/components/ui";
 import { modeDemo, muatDashboard } from "@/lib/data";
 import { siapkanDashboard, type ParamDashboard } from "@/lib/jarkoman/dashboard";
 import { kirimEfektif } from "@/lib/jarkoman/rencana";
@@ -45,60 +45,55 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const semuaAktif = d.kelasTerpilih.length > 0 && aktif === d.kelasTerpilih.length;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       {demo && (
-        <p role="status" className="rounded-xl border border-oranye/40 bg-[#FDE8D7] px-4 py-2.5 text-sm text-[#8A3B08]">
+        <p role="status" className="rounded-xl border border-oranye/30 bg-[#FDE8D7] px-4 py-2 text-sm text-[#8A3B08]">
           Mode demo: data contoh dari brief, belum tersambung ke database. Perubahan tidak disimpan.
         </p>
       )}
 
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-ink-muted">Talentiv Academy · Otomasi Jarkoman</p>
-          <h1 className="text-3xl md:text-4xl">Dashboard Jarkoman</h1>
-        </div>
-        <AksiHeader kelasIds={d.kelasTerpilih.map((k) => k.id)} semuaAktif={semuaAktif} />
-      </header>
+      <JudulHalaman atas="Talentiv Academy · Otomasi Jarkoman" judul="Dashboard Jarkoman"
+        aksi={<AksiHeader kelasIds={d.kelasTerpilih.map((k) => k.id)} semuaAktif={semuaAktif} />} />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kartu className="!p-4">
+      <Kartu className="grid gap-px overflow-hidden !bg-garis !p-0 grid-cols-2 xl:grid-cols-4 [&>div]:space-y-0.5 [&>div]:bg-kartu [&>div]:px-4 [&>div]:py-3 sm:[&>div]:px-5 sm:[&>div]:py-4">
+        <div>
           <p className="text-xs text-ink-muted">Nomor WhatsApp</p>
           <p className="font-semibold">{process.env.WA_BUSINESS_NUMBER || "Belum diatur"}</p>
           <p className={`text-xs ${waTerhubung ? "text-cta" : "text-ink-muted"}`}>
             {waTerhubung ? "Terhubung ke API resmi Meta" : "Belum terhubung ke API Meta"}
           </p>
-        </Kartu>
-        <Kartu className="!p-4">
+        </div>
+        <div>
           <p className="text-xs text-ink-muted">Season aktif</p>
           <p className="font-semibold">{d.seasonAktif || "Belum ada kelas"}</p>
           <p className="text-xs text-ink-muted">Program dikelompokkan per season</p>
-        </Kartu>
-        <Kartu className="!p-4">
+        </div>
+        <div>
           <p className="text-xs text-ink-muted">Status otomasi</p>
           <p className="font-semibold">{aktif === 0 ? "Belum dimulai" : `Aktif · ${aktif} dari ${d.kelasTerpilih.length} kelas`}</p>
           <p className="text-xs text-ink-muted">Notifikasi ke admin di setiap jam kirim</p>
-        </Kartu>
-        <Kartu className="!p-4">
+        </div>
+        <div>
           <p className="text-xs text-ink-muted">Sinkron data app.talentiv.id</p>
           <p className="font-semibold">
             {data.pengaturan.sinkron_terakhir ? tanggalPendek(new Date(data.pengaturan.sinkron_terakhir)) : "Belum pernah"}
           </p>
-          {!demo && <TombolSinkron />}
-        </Kartu>
-      </div>
+          {demo ? <p className="text-xs text-ink-muted">Otomatis setiap jam</p> : <TombolSinkron />}
+        </div>
+      </Kartu>
 
       <Kartu><Filter filter={d.filter} /></Kartu>
 
       {t ? (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
-          <Kartu>
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
+          <Kartu className="lg:sticky lg:top-6">
             <h2 className="mb-3 text-lg">Template</h2>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {(Object.keys(LABEL_JENIS) as Jenis[]).map((jenis) => {
                 const pilih = t.j.jenis === jenis;
                 return (
                   <Link key={jenis} href={urlDengan(p, { jenis, j: undefined })} aria-current={pilih ? "true" : undefined}
-                    className={`block rounded-xl border px-3 py-2.5 ${pilih ? "border-cta bg-[#DDF3EF]" : "border-garis hover:bg-latar"}`}>
+                    className={`block rounded-xl border px-3 py-2.5 ${pilih ? "border-cta/40 bg-[#DDF3EF]" : "border-transparent hover:bg-latar"}`}>
                     <p className="text-sm font-semibold">{LABEL_JENIS[jenis]}</p>
                     <p className="text-xs text-ink-muted">{KET_TEMPLATE[jenis]}</p>
                   </Link>
@@ -107,7 +102,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             </div>
           </Kartu>
 
-          <Kartu>
+          <Kartu className="lg:sticky lg:top-6">
             <KolomVariabel
               judul={`Variabel · ${LABEL_JENIS[t.j.jenis]}`}
               variabel={daftarVariabel(t.j.jenis, t.t, d.perdana.get(t.j.kelasId)!.mulai)}
@@ -150,12 +145,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-xs text-ink-muted">
               <tr className="border-b border-garis">
-                <th className="py-2 pr-3 font-semibold">Program & batch</th>
-                <th className="py-2 pr-3 font-semibold">Sesi</th>
-                <th className="py-2 pr-3 font-semibold">Template</th>
-                <th className="py-2 pr-3 font-semibold">Jadwal kirim</th>
-                <th className="py-2 pr-3 font-semibold">Variabel</th>
-                <th className="py-2 font-semibold">Status</th>
+                <th className="py-2.5 pr-4 font-semibold">Program & batch</th>
+                <th className="py-2.5 pr-4 font-semibold">Sesi</th>
+                <th className="py-2.5 pr-4 font-semibold">Template</th>
+                <th className="py-2.5 pr-4 font-semibold">Jadwal kirim</th>
+                <th className="py-2.5 pr-4 font-semibold">Variabel</th>
+                <th className="py-2.5 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -164,20 +159,20 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 const kosong = b.t.hasil.kosong;
                 const pilih = t?.j.id === b.j.id;
                 return (
-                  <tr key={b.j.id} className={`border-b border-garis/70 ${pilih ? "bg-[#DDF3EF]/60" : ""}`}>
-                    <td className="py-2 pr-3">
-                      <Link href={urlDengan(p, { j: b.j.id })} className="font-semibold hover:underline">{b.t.kelas.nama}</Link>
+                  <tr key={b.j.id} className={`border-b border-garis/70 last:border-0 ${pilih ? "bg-[#DDF3EF]/60" : "hover:bg-latar/60"}`}>
+                    <td className="py-3 pr-4">
+                      <Link href={urlDengan(p, { j: b.j.id })} title={b.t.kelas.nama} className="font-medium hover:text-cta hover:underline">{tanpaSeason(b.t.kelas.nama, d.seasonAktif)}</Link>
                     </td>
-                    <td className="py-2 pr-3">{b.t.sesi ? `Sesi ${b.t.sesi.nomor}${b.t.sesi.topik ? ` · ${b.t.sesi.topik}` : ""}` : "Sesi perdana"}</td>
-                    <td className="py-2 pr-3">{LABEL_JENIS[b.j.jenis]}</td>
-                    <td className="py-2 pr-3">
+                    <td className="py-3 pr-4">{b.t.sesi ? `Sesi ${b.t.sesi.nomor}${b.t.sesi.topik ? ` · ${b.t.sesi.topik}` : ""}` : "Sesi perdana"}</td>
+                    <td className="py-3 pr-4">{LABEL_JENIS[b.j.jenis]}</td>
+                    <td className="py-3 pr-4">
                       <JamKirim key={kirimEfektif(b.j).getTime()} id={b.j.id} nilai={keInputWib(kirimEfektif(b.j))}
                         manual={Boolean(b.j.kirimAtManual)} terkunci={demo || b.j.status === "sudah_dikirim"} />
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-3 pr-4">
                       {kosong.length ? <span className="text-oranye">{kosong.join(", ")} kosong</span> : `${total}/${total} lengkap`}
                     </td>
-                    <td className="py-2">
+                    <td className="py-3">
                       <BadgeStatus label={b.status} />
                       {b.j.error && <p className="mt-0.5 max-w-48 text-[11px] text-[#8F1D1D]">{b.j.error}</p>}
                     </td>

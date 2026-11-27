@@ -24,19 +24,24 @@ export function KalenderMinggu({ senin, item, hrefMinggu }: { senin: Date; item:
   return (
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <Link href={hrefMinggu(geser(-7))} className="rounded-xl border border-garis px-3 py-1.5 text-sm hover:bg-latar">Minggu sebelumnya</Link>
+        <Link href={hrefMinggu(geser(-7))} aria-label="Minggu sebelumnya" className="rounded-xl border border-garis px-3 py-1.5 text-sm hover:bg-latar">
+          ‹<span className="hidden sm:inline"> Minggu sebelumnya</span>
+        </Link>
         <p className="text-sm font-semibold">
           {bagianWib(hari[0].tgl).d}/{bagianWib(hari[0].tgl).m} – {bagianWib(hari[6].tgl).d}/{bagianWib(hari[6].tgl).m}/{bagianWib(hari[6].tgl).y}
         </p>
-        <Link href={hrefMinggu(geser(7))} className="rounded-xl border border-garis px-3 py-1.5 text-sm hover:bg-latar">Minggu berikutnya</Link>
+        <Link href={hrefMinggu(geser(7))} aria-label="Minggu berikutnya" className="rounded-xl border border-garis px-3 py-1.5 text-sm hover:bg-latar">
+          <span className="hidden sm:inline">Minggu berikutnya </span>›
+        </Link>
       </div>
-      <div className="grid gap-2 overflow-x-auto md:grid-cols-7">
+      <div className="grid gap-2 md:grid-cols-7">
         {hari.map((h) => {
           const isi = item.filter((x) => isoTgl(x.mulai) === isoTgl(h.tgl)).sort((a, b) => a.mulai.getTime() - b.mulai.getTime());
           return (
-            <div key={h.nama} className="min-h-28 rounded-xl border border-garis bg-latar/50 p-2">
-              <p className="mb-2 text-xs font-semibold text-ink-muted">{h.nama} {bagianWib(h.tgl).d}</p>
-              <div className="space-y-1.5">
+            <div key={h.nama} className="flex gap-3 rounded-xl border border-garis bg-latar/50 p-2 md:block md:min-h-28">
+              <p className="w-16 shrink-0 text-xs font-semibold text-ink-muted md:mb-2 md:w-auto">{h.nama} {bagianWib(h.tgl).d}</p>
+              <div className="min-w-0 flex-1 space-y-1.5">
+                {isi.length === 0 && <p className="text-xs text-ink-muted/70 md:hidden">Tidak ada kelas</p>}
                 {isi.map((x) => (
                   <div key={x.id} className={`rounded-lg p-2 text-xs ${x.warna} ${x.bentrok ? "outline-2 outline-[#C62828]" : ""}`}>
                     <p className="font-semibold">{jamWib(x.mulai)} {x.bentrok && <span className="text-[#8F1D1D]">· Bentrok</span>}</p>

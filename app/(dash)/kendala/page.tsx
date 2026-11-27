@@ -1,5 +1,5 @@
 import { TombolStatusKendala } from "@/components/FormAdminWa";
-import { Kartu } from "@/components/ui";
+import { JudulHalaman, Kartu } from "@/components/ui";
 import { modeDemo } from "@/lib/data";
 import { tanggalPendek } from "@/lib/jarkoman/waktu";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -24,7 +24,7 @@ export default async function LaporanKendala() {
   }
   return (
     <div className="max-w-3xl space-y-5">
-      <h1 className="text-3xl md:text-4xl">Laporan Kendala</h1>
+      <JudulHalaman atas="Masukan dari admin" judul="Laporan Kendala" />
       <Kartu>
         {galat && <p role="alert" className="text-sm text-oranye">Gagal memuat laporan: {galat}</p>}
         {!galat && daftar.length === 0 && (

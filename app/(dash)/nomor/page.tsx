@@ -1,5 +1,5 @@
 import { FormAdminWa } from "@/components/FormAdminWa";
-import { Kartu } from "@/components/ui";
+import { JudulHalaman, Kartu } from "@/components/ui";
 import { muatDashboard } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function Nomor() {
   const terhubung = Boolean(process.env.WA_PHONE_NUMBER_ID && process.env.WA_TOKEN);
   return (
     <div className="max-w-2xl space-y-5">
-      <h1 className="text-3xl md:text-4xl">Nomor WhatsApp</h1>
+      <JudulHalaman atas="Pengaturan" judul="Nomor WhatsApp" />
       <Kartu>
         <p className="text-xs text-ink-muted">Nomor bisnis (pengirim)</p>
         <p className="text-lg font-semibold">{process.env.WA_BUSINESS_NUMBER || "Belum diatur"}</p>

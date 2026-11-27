@@ -33,5 +33,21 @@ export function BadgeStatus({ label }: { label: string }) {
 }
 
 export function Kartu({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-[20px] border border-garis bg-kartu p-5 ${className}`}>{children}</section>;
+  return <section className={`rounded-2xl border border-garis bg-kartu p-5 ${className}`}>{children}</section>;
 }
+
+export function JudulHalaman({ atas, judul, aksi }: { atas?: string; judul: string; aksi?: React.ReactNode }) {
+  return (
+    <header className="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        {atas && <p className="text-sm text-ink-muted">{atas}</p>}
+        <h1 className="mt-1 text-2xl md:text-3xl">{judul}</h1>
+      </div>
+      {aksi}
+    </header>
+  );
+}
+
+// Nama kelas dari API sering diakhiri "( November 2026 )". Halaman yang sudah difilter per season membuangnya.
+export const tanpaSeason = (nama: string, season: string) =>
+  nama.replace(/\s*\(\s*([^)]*?)\s*\)\s*$/, (m, isi: string) => (isi.toLowerCase() === season.toLowerCase() ? "" : m));
